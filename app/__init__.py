@@ -14,6 +14,7 @@ limiter = Limiter(
     default_limits=["200 per day", "50 per hour"]
 )
 
+
 def create_app(config_name=None):
     """Application factory pattern"""
     if config_name is None:
