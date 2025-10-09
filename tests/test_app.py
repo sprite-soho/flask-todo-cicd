@@ -357,15 +357,14 @@ class TestTodoAPI:
             ]
             db.session.add_all(todos)
             db.session.commit()
-
         response = client.get('/api/todos')
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
         assert data['count'] == 3
         # Should be ordered by created_at desc (newest first)
-        assert data['data'][0]['title'] == 'Todo 1'
-        assert data['data'][2]['title'] == 'Todo 3'
+        assert data['data'][0]['title'] == 'Todo 3'
+        assert data['data'][2]['title'] == 'Todo 1'
 
     @patch('app.routes.Todo.query')
     def test_get_todos_database_error(self, mock_query, client):
