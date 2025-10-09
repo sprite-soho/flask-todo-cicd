@@ -28,7 +28,7 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/todo_dev
       SECRET_KEY: dev-secret-key-12345
     ports:
-      - "9999:5000"
+      - "5000:5000"
     depends_on:
       db:
         condition: service_healthy
@@ -37,21 +37,6 @@ services:
     networks:
       - app_network
     command: flask run --host=0.0.0.0
-
-  tester:
-    image: curlimages/curl:latest
-    depends_on:
-      app:
-        condition: service_started
-    networks:
-      - app_network
-    command: >
-      sh -c "
-        sleep 10 &&
-        echo 'Testing API...' &&
-        curl -X GET http://app:5000/ &&
-        echo '\n✅ Test completed successfully.'
-      "
 
 volumes:
   postgres_data:
