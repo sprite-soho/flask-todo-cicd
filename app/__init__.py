@@ -1,14 +1,18 @@
 import os
 from flask import Flask, jsonify
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_cors import CORS
-from flask_migrate import Migrate
 from app.models import db
 from app.routes import api
 from app.config import config
-from app.logging_config import setup_logging
+from sqlalchemy import inspect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
+
+# ✅ สร้าง limiter แบบ factory-compatible (ยังไม่ผูกกับ app)
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
 def create_app(config_name=None):
     """Application factory pattern"""
@@ -21,28 +25,7 @@ def create_app(config_name=None):
 
     # Initialize extensions
     db.init_app(app)
-
-    # Initialize Flask-Migrate
-    Migrate(app, db)
-
-    # Initialize CORS
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": ["*"],
-            "methods": ["GET", "POST", "PUT", "DELETE"],
-            "allow_headers": ["Content-Type"]
-        }
-    })
-
-    # Initialize Rate Limiting
-    Limiter(
-        app=app,
-        key_func=get_remote_address,
-        default_limits=["200 per day", "50 per hour"]
-    )
-
-    # Setup logging
-    setup_logging(app)
+    limiter.init_app(app)  # ✅ ผูก limiter กับ app ตรงนี้
 
     # Register blueprints
     app.register_blueprint(api, url_prefix='/api')
@@ -74,17 +57,22 @@ def create_app(config_name=None):
             'error': 'Internal server error'
         }), 500
 
+    # ✅ Create tables safely within context
+    with app.app_context():
+        inspector = inspect(db.engine)
+        existing_tables = inspector.get_table_names()
+        if 'todos' not in existing_tables:
+            db.create_all()
+
+    # ✅ Global exception handler
     @app.errorhandler(Exception)
     def handle_exception(error):
-        """Handle all unhandled exceptions"""
-        db.session.rollback()
+        """Handle all unhandled exceptions gracefully"""
+        with app.app_context():
+            db.session.rollback()
         return jsonify({
             'success': False,
             'error': 'Internal server error'
         }), 500
-
-    # Create tables
-    with app.app_context():
-        db.create_all()
 
     return app
