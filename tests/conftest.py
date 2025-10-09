@@ -6,7 +6,7 @@ from app.models import db
 @pytest.fixture
 def app():
     """Create Flask app for testing"""
-    app = create_app('testing')
+    app = create_app("testing")
     with app.app_context():
         db.create_all()
         yield app
