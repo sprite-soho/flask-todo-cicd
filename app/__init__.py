@@ -40,7 +40,6 @@ def create_app(config_name=None):
     def internal_error(error):
         return jsonify({"success": False, "error": "Internal server error"}), 500
     
-    
     @app.errorhandler(Exception)
     def handle_exception(error):
         """Handle all unhandled exceptions"""
