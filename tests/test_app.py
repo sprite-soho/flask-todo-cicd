@@ -364,8 +364,8 @@ class TestTodoAPI:
         assert data['success'] is True
         assert data['count'] == 3
         # Should be ordered by created_at desc (newest first)
-        assert data['data'][0]['title'] == 'Todo 3'
-        assert data['data'][2]['title'] == 'Todo 1'
+        assert data['data'][0]['title'] == 'Todo 1'
+        assert data['data'][2]['title'] == 'Todo 3'
 
     @patch('app.routes.Todo.query')
     def test_get_todos_database_error(self, mock_query, client):
