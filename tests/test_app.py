@@ -357,6 +357,7 @@ class TestTodoAPI:
             ]
             db.session.add_all(todos)
             db.session.commit()
+
         response = client.get('/api/todos')
         assert response.status_code == 200
         data = response.get_json()
